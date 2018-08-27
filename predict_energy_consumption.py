@@ -30,15 +30,20 @@ data = pd.read_csv('energydata_complete.csv')
 data.describe()
 
 
+# In[3]:
+
+data.head()
+
+
 # ## Exploratory Analysis
 
-# In[3]:
+# In[4]:
 
 print("Number of rows = {}".format(data.shape[0]))
 print("Number of columns = {}".format(data.columns.shape[0]))
 
 
-# In[4]:
+# In[5]:
 
 print("Column wise count of null values:-")
 print(data.isnull().sum())
@@ -46,7 +51,7 @@ print(data.isnull().sum())
 
 # ### So there are no null values in any of the columns. Now, dividing the columns according to the type of data:
 
-# In[5]:
+# In[6]:
 
 #temperature columns
 temp_cols = ["T1","T2","T3","T4","T5","T6","T7","T8","T9"]
@@ -67,34 +72,34 @@ target = ["Appliances"]
 # ### The problem is regression not time series so Date doesn't matter
 # ### lights doesn't matter as we have to predict total energy not category wise energy
 
-# In[6]:
+# In[7]:
 
 from sklearn.model_selection import train_test_split
 train, test = train_test_split(data,test_size=0.25,random_state=seed)
 
 
-# In[7]:
+# In[8]:
 
 train.describe()
 
 
-# In[8]:
+# In[9]:
 
 test.describe()
 
 
-# In[9]:
+# In[10]:
 
 input_vars = train[temp_cols+rho_cols+weather_cols+randoms]
 output_var = train[target]
 
 
-# In[10]:
+# In[11]:
 
 input_vars.describe()
 
 
-# In[11]:
+# In[12]:
 
 output_var.describe()
 
@@ -109,14 +114,17 @@ output_var.describe()
 
 # ### VISUAL INPUT VARS ANALYSIS
 
-# In[12]:
+# In[13]:
 
 hists = input_vars.hist(figsize=(16, 16), bins=20,edgecolor='black')
 
 
-# In[13]:
+# In[14]:
 
-output_var.hist(figsize=(4,4), bins=20,edgecolor='black')
+ax = output_var.hist(figsize=(4,4), bins=20,edgecolor='black')
+for axe in ax.flatten():
+    axe.set_xlabel("Energy Consumption(Wh)")
+    axe.set_ylabel("Frequency")
 
 
 # It can be observed from Histograms that:-
@@ -131,12 +139,12 @@ output_var.hist(figsize=(4,4), bins=20,edgecolor='black')
 
 # ## Correlation plots
 
-# In[14]:
+# In[15]:
 
 from scipy.stats import spearmanr
 
 
-# In[15]:
+# In[16]:
 
 labels = []
 values = []
@@ -145,28 +153,28 @@ for col in input_vars.columns:
     values.append(spearmanr(input_vars[col].values, output_var.values)[0])
 
 
-# In[16]:
+# In[17]:
 
 corr_df = pd.DataFrame({'col_labels':labels, 'corr_values':values})
 corr_df = corr_df.sort_values(by='corr_values')
 
 
-# In[17]:
+# In[18]:
 
 corr_df = corr_df[(corr_df['corr_values']>=0.1) | (corr_df['corr_values']<=-0.1)]
 
 
-# In[18]:
+# In[19]:
 
 rel_cols = corr_df.col_labels.tolist()
 
 
-# In[19]:
+# In[20]:
 
 temp_df = train[rel_cols]
 
 
-# In[20]:
+# In[21]:
 
 corrmat = temp_df.corr(method='spearman')
 f,ax = plt.subplots(figsize=(20,20))
@@ -176,12 +184,12 @@ plt.title("Important variables correlation map", fontsize=15)
 plt.show()
 
 
-# In[21]:
+# In[22]:
 
 input_vars.columns
 
 
-# In[22]:
+# In[23]:
 
 rel_cols
 
@@ -197,32 +205,32 @@ rel_cols
 # ### T6 and T9 need to be removed 
 # ### Although I've got the important variables based on correlation, its better to get a second opinion using a Tree based regressor (Extra Randomized Trees in this case).
 
-# In[23]:
+# In[24]:
 
 train_X = train[input_vars.columns]
 train_Y = train[output_var.columns]
 
 
-# In[24]:
+# In[25]:
 
 train_X = train_X.drop(["T6", "T9"], axis=1)
 
 
-# In[25]:
+# In[26]:
 
 from sklearn import ensemble
 model = ensemble.ExtraTreesRegressor(n_estimators=200, max_depth=20, max_features=0.5, n_jobs=-1, random_state=0)
 model.fit(train_X, train_Y)
 
 
-# In[26]:
+# In[27]:
 
 feature_names = train_X.columns.values
 importances = model.feature_importances_
 indices = np.argsort(importances)[::-1]
 
 
-# In[27]:
+# In[28]:
 
 plt.figure(figsize=(16,16))
 plt.title("Feature Importances")
@@ -232,60 +240,60 @@ plt.xlim([-1, len(indices)])
 plt.show()
 
 
-# In[28]:
+# In[29]:
 
 feature_names[indices]
 
 
-# In[29]:
+# In[30]:
 
 rel_cols
 
 
 # * Comparing both lists we see that rv1, rv2 , Visibility are the least important of the lot. So removing them and keeping the rest.
 
-# In[30]:
+# In[31]:
 
 train_X = train_X.drop(["rv1","rv2","Visibility"],axis=1)
 
 
-# In[31]:
+# In[32]:
 
 test_X = test[input_vars.columns]
 test_Y = test[output_var.columns]
 
 
-# In[32]:
-
-test_X.head()
-
-
 # In[33]:
 
-test_X.drop(["T6", "T9","rv1","rv2","Visibility"], axis=1, inplace=True)
+test_X.head()
 
 
 # In[34]:
 
-test_X.head()
+test_X.drop(["T6", "T9","rv1","rv2","Visibility"], axis=1, inplace=True)
 
 
 # In[35]:
 
-train_X.head()
+test_X.head()
 
 
 # In[36]:
 
-test_X.columns
+train_X.head()
 
 
 # In[37]:
 
-train_X.columns
+test_X.columns
 
 
 # In[38]:
+
+train_X.columns
+
+
+# In[39]:
 
 # Import scaler
 from sklearn.preprocessing import StandardScaler
@@ -294,35 +302,35 @@ from sklearn.preprocessing import StandardScaler
 standard_scaler = StandardScaler()
 
 
-# In[39]:
+# In[40]:
 
 train = train[list(train_X.columns.values) + target]
 
 
-# In[40]:
+# In[41]:
 
 test = test[list(test_X.columns.values) + target]
 
 
-# In[41]:
+# In[42]:
 
 train.head()
 
 
-# In[42]:
+# In[43]:
 
 # Create dummy dataframes to hold the scaled train and test data
 train_scaled = pd.DataFrame(columns=train.columns, index=train.index)
 test_scaled = pd.DataFrame(columns=test.columns, index=test.index)
 
 
-# In[43]:
+# In[44]:
 
 train_scaled[train_scaled.columns] = standard_scaler.fit_transform(train)
 test_scaled[test_scaled.columns] = standard_scaler.fit_transform(test)
 
 
-# In[44]:
+# In[45]:
 
 # Prepare training and testing data
 train_X = train_scaled.drop("Appliances", axis=1)
@@ -332,14 +340,14 @@ test_X = test_scaled.drop("Appliances", axis=1)
 test_Y = test_scaled["Appliances"]
 
 
-# In[45]:
+# In[46]:
 
 from sklearn.linear_model import Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor
 from sklearn.neural_network import MLPRegressor
 
 
-# In[46]:
+# In[47]:
 
 regressors = [
         Ridge, 
@@ -351,12 +359,12 @@ regressors = [
     ]
 
 
-# In[47]:
+# In[48]:
 
 props = []
 
 
-# In[48]:
+# In[49]:
 
 for reg in regressors:
         regs = reg(random_state=seed)
@@ -368,12 +376,12 @@ for reg in regressors:
         props.append(reg_props)
 
 
-# In[49]:
+# In[50]:
 
 props
 
 
-# In[50]:
+# In[51]:
 
 names = [prop["name"] for prop in props]
 train_scores = [prop["train_score"] for prop in props]
@@ -387,7 +395,7 @@ df = pd.DataFrame(index=names,
                   )
 
 
-# In[51]:
+# In[52]:
 
 df
 
@@ -400,7 +408,7 @@ df
 
 # ## Hyperparameter Tuning
 
-# In[52]:
+# In[53]:
 
 from sklearn.model_selection import GridSearchCV
 
@@ -419,32 +427,32 @@ grid_search = GridSearchCV(clf, param_grid, scoring="r2", cv=5, n_jobs=-1, verbo
 grid_search.fit(train_X, train_Y)
 
 
-# In[53]:
+# In[54]:
 
 grid_search.best_params_
 
 
-# In[54]:
+# In[55]:
 
 grid_search.best_estimator_
 
 
-# In[55]:
+# In[56]:
 
 grid_search.best_estimator_.score(train_X,train_Y)
 
 
-# In[56]:
+# In[57]:
 
 grid_search.best_estimator_.score(test_X,test_Y)
 
 
-# In[57]:
+# In[58]:
 
 feature_indices = np.argsort(grid_search.best_estimator_.feature_importances_)
 
 
-# In[58]:
+# In[59]:
 
 print("Top 5 most important features:-")
 # Reverse the array to get important features at the beginning
@@ -456,14 +464,14 @@ for index in feature_indices[:5]:
     print(test_X.columns[index])
 
 
-# In[59]:
+# In[60]:
 
 feature_names = train_X.columns.values
 importances = grid_search.best_estimator_.feature_importances_
 indices = np.argsort(importances)[::-1]
 
 
-# In[60]:
+# In[61]:
 
 plt.figure(figsize=(16,16))
 plt.title("Feature Importances")
@@ -473,14 +481,14 @@ plt.xlim([-1, len(indices)])
 plt.show()
 
 
-# In[61]:
+# In[62]:
 
 # Constructing data set from reduced feature space
 train_X_reduced = train_X[train_X.columns[feature_indices[::-1][:5]]]
 test_X_reduced = test_X[test_X.columns[feature_indices[::-1][:5]]]
 
 
-# In[62]:
+# In[63]:
 
 from sklearn.base import clone
 
@@ -490,12 +498,12 @@ reg_best = clone(grid_search.best_estimator_)
 reg_best.fit(train_X_reduced, train_Y)
 
 
-# In[63]:
+# In[64]:
 
 reg_best.score(test_X_reduced, test_Y)
 
 
-# In[64]:
+# In[65]:
 
 #Difference is about 10.5%
 
