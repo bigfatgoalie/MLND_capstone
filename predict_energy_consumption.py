@@ -7,6 +7,7 @@
 
 # In[1]:
 
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -15,7 +16,7 @@ import seaborn as sns
 from sklearn import preprocessing, model_selection, metrics
 #import lightgbm as lgb
 
-get_ipython().magic('matplotlib inline')
+get_ipython().run_line_magic('matplotlib', 'inline')
 
 seed=79
 
@@ -26,11 +27,13 @@ from scipy.stats import spearmanr
 
 # In[2]:
 
+
 data = pd.read_csv('energydata_complete.csv')
 data.describe()
 
 
 # In[3]:
+
 
 data.head()
 
@@ -39,11 +42,13 @@ data.head()
 
 # In[4]:
 
+
 print("Number of rows = {}".format(data.shape[0]))
 print("Number of columns = {}".format(data.columns.shape[0]))
 
 
 # In[5]:
+
 
 print("Column wise count of null values:-")
 print(data.isnull().sum())
@@ -52,6 +57,7 @@ print(data.isnull().sum())
 # ### So there are no null values in any of the columns. Now, dividing the columns according to the type of data:
 
 # In[6]:
+
 
 #temperature columns
 temp_cols = ["T1","T2","T3","T4","T5","T6","T7","T8","T9"]
@@ -74,21 +80,25 @@ target = ["Appliances"]
 
 # In[7]:
 
+
 from sklearn.model_selection import train_test_split
 train, test = train_test_split(data,test_size=0.25,random_state=seed)
 
 
 # In[8]:
 
+
 train.describe()
 
 
 # In[9]:
 
+
 test.describe()
 
 
 # In[10]:
+
 
 input_vars = train[temp_cols+rho_cols+weather_cols+randoms]
 output_var = train[target]
@@ -96,10 +106,12 @@ output_var = train[target]
 
 # In[11]:
 
+
 input_vars.describe()
 
 
 # In[12]:
+
 
 output_var.describe()
 
@@ -116,10 +128,12 @@ output_var.describe()
 
 # In[13]:
 
+
 hists = input_vars.hist(figsize=(16, 16), bins=20,edgecolor='black')
 
 
 # In[14]:
+
 
 ax = output_var.hist(figsize=(4,4), bins=20,edgecolor='black')
 for axe in ax.flatten():
@@ -141,10 +155,12 @@ for axe in ax.flatten():
 
 # In[15]:
 
+
 from scipy.stats import spearmanr
 
 
 # In[16]:
+
 
 labels = []
 values = []
@@ -155,26 +171,31 @@ for col in input_vars.columns:
 
 # In[17]:
 
+
 corr_df = pd.DataFrame({'col_labels':labels, 'corr_values':values})
 corr_df = corr_df.sort_values(by='corr_values')
 
 
 # In[18]:
 
+
 corr_df = corr_df[(corr_df['corr_values']>=0.1) | (corr_df['corr_values']<=-0.1)]
 
 
 # In[19]:
+
 
 rel_cols = corr_df.col_labels.tolist()
 
 
 # In[20]:
 
+
 temp_df = train[rel_cols]
 
 
 # In[21]:
+
 
 corrmat = temp_df.corr(method='spearman')
 f,ax = plt.subplots(figsize=(20,20))
@@ -186,10 +207,12 @@ plt.show()
 
 # In[22]:
 
+
 input_vars.columns
 
 
 # In[23]:
+
 
 rel_cols
 
@@ -207,16 +230,19 @@ rel_cols
 
 # In[24]:
 
+
 train_X = train[input_vars.columns]
 train_Y = train[output_var.columns]
 
 
 # In[25]:
 
+
 train_X = train_X.drop(["T6", "T9"], axis=1)
 
 
 # In[26]:
+
 
 from sklearn import ensemble
 model = ensemble.ExtraTreesRegressor(n_estimators=200, max_depth=20, max_features=0.5, n_jobs=-1, random_state=0)
@@ -225,12 +251,14 @@ model.fit(train_X, train_Y)
 
 # In[27]:
 
+
 feature_names = train_X.columns.values
 importances = model.feature_importances_
 indices = np.argsort(importances)[::-1]
 
 
 # In[28]:
+
 
 plt.figure(figsize=(16,16))
 plt.title("Feature Importances")
@@ -242,10 +270,12 @@ plt.show()
 
 # In[29]:
 
+
 feature_names[indices]
 
 
 # In[30]:
+
 
 rel_cols
 
@@ -254,10 +284,12 @@ rel_cols
 
 # In[31]:
 
+
 train_X = train_X.drop(["rv1","rv2","Visibility"],axis=1)
 
 
 # In[32]:
+
 
 test_X = test[input_vars.columns]
 test_Y = test[output_var.columns]
@@ -265,35 +297,42 @@ test_Y = test[output_var.columns]
 
 # In[33]:
 
+
 test_X.head()
 
 
 # In[34]:
+
 
 test_X.drop(["T6", "T9","rv1","rv2","Visibility"], axis=1, inplace=True)
 
 
 # In[35]:
 
+
 test_X.head()
 
 
 # In[36]:
+
 
 train_X.head()
 
 
 # In[37]:
 
+
 test_X.columns
 
 
 # In[38]:
 
+
 train_X.columns
 
 
 # In[39]:
+
 
 # Import scaler
 from sklearn.preprocessing import StandardScaler
@@ -304,20 +343,24 @@ standard_scaler = StandardScaler()
 
 # In[40]:
 
+
 train = train[list(train_X.columns.values) + target]
 
 
 # In[41]:
+
 
 test = test[list(test_X.columns.values) + target]
 
 
 # In[42]:
 
+
 train.head()
 
 
 # In[43]:
+
 
 # Create dummy dataframes to hold the scaled train and test data
 train_scaled = pd.DataFrame(columns=train.columns, index=train.index)
@@ -326,11 +369,13 @@ test_scaled = pd.DataFrame(columns=test.columns, index=test.index)
 
 # In[44]:
 
+
 train_scaled[train_scaled.columns] = standard_scaler.fit_transform(train)
 test_scaled[test_scaled.columns] = standard_scaler.fit_transform(test)
 
 
 # In[45]:
+
 
 # Prepare training and testing data
 train_X = train_scaled.drop("Appliances", axis=1)
@@ -342,12 +387,14 @@ test_Y = test_scaled["Appliances"]
 
 # In[46]:
 
+
 from sklearn.linear_model import Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor
 from sklearn.neural_network import MLPRegressor
 
 
 # In[47]:
+
 
 regressors = [
         Ridge, 
@@ -361,10 +408,12 @@ regressors = [
 
 # In[48]:
 
+
 props = []
 
 
 # In[49]:
+
 
 for reg in regressors:
         regs = reg(random_state=seed)
@@ -378,10 +427,12 @@ for reg in regressors:
 
 # In[50]:
 
+
 props
 
 
 # In[51]:
+
 
 names = [prop["name"] for prop in props]
 train_scores = [prop["train_score"] for prop in props]
@@ -397,6 +448,7 @@ df = pd.DataFrame(index=names,
 
 # In[52]:
 
+
 df
 
 
@@ -409,6 +461,7 @@ df
 # ## Hyperparameter Tuning
 
 # In[53]:
+
 
 from sklearn.model_selection import GridSearchCV
 
@@ -429,30 +482,36 @@ grid_search.fit(train_X, train_Y)
 
 # In[54]:
 
+
 grid_search.best_params_
 
 
 # In[55]:
+
 
 grid_search.best_estimator_
 
 
 # In[56]:
 
+
 grid_search.best_estimator_.score(train_X,train_Y)
 
 
 # In[57]:
+
 
 grid_search.best_estimator_.score(test_X,test_Y)
 
 
 # In[58]:
 
+
 feature_indices = np.argsort(grid_search.best_estimator_.feature_importances_)
 
 
 # In[59]:
+
 
 print("Top 5 most important features:-")
 # Reverse the array to get important features at the beginning
@@ -466,12 +525,14 @@ for index in feature_indices[:5]:
 
 # In[60]:
 
+
 feature_names = train_X.columns.values
 importances = grid_search.best_estimator_.feature_importances_
 indices = np.argsort(importances)[::-1]
 
 
 # In[61]:
+
 
 plt.figure(figsize=(16,16))
 plt.title("Feature Importances")
@@ -483,12 +544,14 @@ plt.show()
 
 # In[62]:
 
+
 # Constructing data set from reduced feature space
 train_X_reduced = train_X[train_X.columns[feature_indices[::-1][:5]]]
 test_X_reduced = test_X[test_X.columns[feature_indices[::-1][:5]]]
 
 
 # In[63]:
+
 
 from sklearn.base import clone
 
@@ -500,15 +563,50 @@ reg_best.fit(train_X_reduced, train_Y)
 
 # In[64]:
 
+
 reg_best.score(test_X_reduced, test_Y)
 
 
 # In[65]:
 
+
 #Difference is about 10.5%
+from sklearn.model_selection import cross_validate
 
 
-# In[ ]:
+# In[66]:
 
 
+clf = grid_search.best_estimator_
+
+
+# In[67]:
+
+
+data_X = train_X.append(test_X)
+data_Y = train_Y.append(test_Y)
+
+
+# In[68]:
+
+
+scores = cross_validate(clf,data_X,data_Y, cv=5)
+
+
+# In[69]:
+
+
+scores.keys()
+
+
+# In[70]:
+
+
+scores['test_score']
+
+
+# In[71]:
+
+
+scores['train_score']
 
