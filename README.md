@@ -9,6 +9,8 @@ This led me to explore it further and led to the follwing:
 * [Research Paper](http://dx.doi.org/10.1016/j.enbuild.2017.01.083)           <br>
 * [GitHub repo](https://github.com/LuisM78/Appliances-energy-prediction-data)
 
+<img src='https://github.com/bigfatgoalie/MLND_capstone/blob/master/Corr_heatmap.png'><br>
+
 Author's best R2 scores (benchmark):
 * Training Data : 0.97
 * Testing Data  : 0.58 
