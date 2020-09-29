@@ -5,7 +5,7 @@ Capstone project for Udacity Machine Learning Nanodegree
 I came across the following dataset during a online coding challenge.
 * [Appliance Energy Data](http://archive.ics.uci.edu/ml/datasets/Appliances+energy+prediction)
 
-This led me to explore it further and led to the follwing:
+This led me to explore it further and led to the following:
 * [Research Paper](http://dx.doi.org/10.1016/j.enbuild.2017.01.083)           <br>
 * [GitHub repo](https://github.com/LuisM78/Appliances-energy-prediction-data)
 
